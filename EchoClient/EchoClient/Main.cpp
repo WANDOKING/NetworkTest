@@ -8,8 +8,6 @@
 #include "Logger.h"
 #include "WSA.h"
 
-#define SERVER_IP L"127.0.0.1"
-#define SERVER_PORT 9000
 #define BUFFER_SIZE 512
 
 //#define USE_CLIENT_BIND
@@ -23,6 +21,14 @@ int main(void)
 	setlocale(LC_ALL, "Korean");
 
 	int retConnect;
+
+	WCHAR userInputIp[16];
+	int userInputPort;
+	wprintf(L"Input IP : ");
+	wscanf_s(L"%s", userInputIp, 16);
+	wprintf(L"Input Port : ");
+	wscanf_s(L"%d", &userInputPort);
+	getwchar();
 
 	// socket()
 	SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -45,14 +51,14 @@ int main(void)
 	SOCKADDR_IN serverAddress;
 	ZeroMemory(&serverAddress, sizeof(serverAddress));
 	serverAddress.sin_family = AF_INET;
-	InetPton(AF_INET, SERVER_IP, &serverAddress.sin_addr);
-	serverAddress.sin_port = htons(SERVER_PORT);
+	InetPton(AF_INET, userInputIp, &serverAddress.sin_addr);
+	serverAddress.sin_port = htons(userInputPort);
 
 	// connect()
 	retConnect = connect(clientSocket, (SOCKADDR*)&serverAddress, sizeof(serverAddress));
 	ASSERT_WITH_MESSAGE(retConnect != SOCKET_ERROR, L"clientSocket connect() error");
 
-	wprintf(L"[Connected to %s:%d]\n", SERVER_IP, SERVER_PORT);
+	wprintf(L"[Connected to %s:%d]\n", userInputIp, userInputPort);
 
 	WCHAR sendBuffer[BUFFER_SIZE + 1];
 	WCHAR recvBuffer[BUFFER_SIZE + 1];
