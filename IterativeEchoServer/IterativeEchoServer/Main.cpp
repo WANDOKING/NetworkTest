@@ -3,12 +3,17 @@
 #include <iostream>
 #include <WinSock2.h>
 #include <WS2tcpip.h>
+#include <Mstcpip.h>
 
 #include "Logger.h"
 #include "WSA.h"
 
 #define BUFFER_SIZE 512
 #define BACKLOG_SIZE SOMAXCONN
+
+#define USE_KEEPALIVE_OPTION
+
+#undef USE_KEEPALIVE_OPTION
 
 int main(void)
 {
@@ -31,6 +36,22 @@ int main(void)
 	// socket()
 	listenSocket = socket(AF_INET, SOCK_STREAM, 0);
 	ASSERT_WITH_MESSAGE(listenSocket != INVALID_SOCKET, L"listenSocket socket() error");
+
+#ifdef USE_KEEPALIVE_OPTION
+	// setsockopt()
+	bool optionValue = true;
+	int retSetsockopt = setsockopt(listenSocket, SOL_SOCKET, SO_KEEPALIVE, (const char*)&optionValue, sizeof(optionValue));
+	ASSERT_WITH_MESSAGE(retSetsockopt != SOCKET_ERROR, L"listenSocket setsockopt() error");
+
+	// WSAIoctl() - KEEPALIVE on
+	tcp_keepalive keepalive;
+	DWORD bytesReturned;
+	keepalive.onoff = 1;         // TCP Keep-alive ON
+	keepalive.keepalivetime = 5000;
+	keepalive.keepaliveinterval = 5000;
+	int retWSAIoctl = WSAIoctl(listenSocket, SIO_KEEPALIVE_VALS, &keepalive, sizeof(keepalive), nullptr, 0, &bytesReturned, nullptr, nullptr);
+	ASSERT_WITH_MESSAGE(retWSAIoctl != SOCKET_ERROR, L"listenSocket WSAIoctl() error");
+#endif
 
 	// serverAddress initialize
 	serverAddress;
@@ -65,6 +86,8 @@ int main(void)
 		// accept()
 		clientSocket = accept(listenSocket, (SOCKADDR*)&clientAddress, &clientAddressLength);
 		ASSERT_WITH_MESSAGE(clientSocket != INVALID_SOCKET, L"listenSocket accept() error");
+
+		
 
 		// Get Client IP, Address
 		WCHAR clientIpAddress[16] = { 0 };
