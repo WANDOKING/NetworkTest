@@ -7,7 +7,6 @@
 #include "Logger.h"
 #include "WSA.h"
 
-#define SERVER_PORT 9000
 #define BUFFER_SIZE 512
 #define BACKLOG_SIZE SOMAXCONN
 
@@ -21,6 +20,13 @@ int main(void)
 
 	int retBind;
 	int retListen;
+	int userInputPort;
+
+	// Port Number Input
+	wprintf(L"Port Number : ");
+	scanf_s("%d", &userInputPort);
+	int ignore = getchar();
+	ASSERT_WITH_MESSAGE(userInputPort >= 0 && userInputPort <= USHRT_MAX, L"Port Number error");
 
 	// socket()
 	listenSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -31,7 +37,7 @@ int main(void)
 	ZeroMemory(&serverAddress, sizeof(serverAddress));
 	serverAddress.sin_family = AF_INET;
 	serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
-	serverAddress.sin_port = htons(SERVER_PORT);
+	serverAddress.sin_port = htons((unsigned short)userInputPort);
 
 	// bind()
 	retBind = bind(listenSocket, (SOCKADDR*)&serverAddress, sizeof(serverAddress));
@@ -40,6 +46,9 @@ int main(void)
 	// listen()
 	retListen = listen(listenSocket, BACKLOG_SIZE);
 	ASSERT_WITH_MESSAGE(retListen != SOCKET_ERROR, L"listenSocket listen() error");
+
+	wprintf(L"[Iterative Echo Server Open]\n");
+	wprintf(L"Port : %d\n", userInputPort);
 
 	while (true)
 	{
