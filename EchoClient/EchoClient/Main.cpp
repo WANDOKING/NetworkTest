@@ -28,7 +28,7 @@ int main(void)
 	wscanf_s(L"%s", userInputIp, 16);
 	wprintf(L"Input Port : ");
 	wscanf_s(L"%d", &userInputPort);
-	getwchar();
+	int ignore = getchar();
 
 	// socket()
 	SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, 0);
